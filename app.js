@@ -18,10 +18,10 @@ const jwtCheck = jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: 'https://mvyp.us.auth0.com/.well-known/jwks.json',
+    jwksUri: process.env.AUTH0_JWKSURI,
   }),
-  audience: 'http://localhost:3001',
-  issuer: 'https://mvyp.us.auth0.com/',
+  audience: process.env.AUTH0_AUDIENCE,
+  issuer: process.env.AUTH0_ISSUER,
   algorithms: ['RS256'],
 });
 

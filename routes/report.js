@@ -13,7 +13,11 @@ Router.get('/test', (req, res) => {
 // Get All Reports
 Router.get('/all', async (req, res) => {
   try {
-    const reports = await Report.find();
+    const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
+    const page = req.query.page ? parseInt(req.query.page) : 1;
+    const reports = await Report.find({})
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
     if (!reports) {
       res.status(404).json({
         message: 'No Reports Found',

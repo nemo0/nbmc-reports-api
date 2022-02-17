@@ -8,6 +8,11 @@ const Unit = new Schema({
   },
   unitType: {
     type: String,
+    required: true,
+  },
+  unitCode: {
+    type: String,
+    required: true,
   },
   address: {
     cityOrVillage: {

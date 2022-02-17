@@ -57,6 +57,7 @@ const Report = new Schema({
   letter: {
     type: String,
   },
+  unitId: {},
 });
 
 module.exports = mongoose.model('Report', Report);
