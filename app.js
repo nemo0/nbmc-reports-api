@@ -1,38 +1,31 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const jwt = require('express-jwt');
-const jwks = require('jwks-rsa');
-const jwtAuthz = require('express-jwt-authz');
 const helmet = require('helmet');
 const cors = require('cors');
+const passport = require('passport');
+
+const { setupMorgan } = require('./middlewares/logging');
+
+// Require Passport Middleware
+const requireAuth = require('./middlewares/passport');
 
 const app = express();
 
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
+app.use(passport.initialize());
+requireAuth(passport);
 
-const jwtCheck = jwt({
-  secret: jwks.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: process.env.AUTH0_JWKSURI,
-  }),
-  audience: process.env.AUTH0_AUDIENCE,
-  issuer: process.env.AUTH0_ISSUER,
-  algorithms: ['RS256'],
-});
-
-app.use(jwtCheck);
+setupMorgan(app);
 
 // Routes
-const reportRouter = require('./routes/report');
-// const authRouter = require('./routes/auth');
+const reportRouter = require('./routes/Report');
+const userRouter = require('./routes/User');
 
 app.use('/api/v1/', reportRouter);
-// app.use('/api/auth/', authRouter);
+app.use('/api/v1/auth', userRouter);
 
 app.get('/', function (req, res) {
   res.json({

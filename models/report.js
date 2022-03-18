@@ -57,7 +57,21 @@ const Report = new Schema({
   letter: {
     type: String,
   },
-  unitId: {},
+  author: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    email: {
+      type: String,
+    },
+    unit: {
+      type: String,
+    },
+    role: {
+      type: String,
+    },
+  },
 });
 
 module.exports = mongoose.model('Report', Report);

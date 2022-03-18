@@ -1,7 +1,7 @@
 const express = require('express');
 const Router = express.Router();
-const mongoose = require('mongoose');
 const Report = require('../models/report');
+const { userAuthenticate, checkRole } = require('../utils/auth');
 
 // Test Route
 Router.get('/test', (req, res) => {
@@ -11,13 +11,9 @@ Router.get('/test', (req, res) => {
 });
 
 // Get All Reports
-Router.get('/all', async (req, res) => {
+Router.get('/all', userAuthenticate, checkRole(['admin']), async (req, res) => {
   try {
-    const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
-    const page = req.query.page ? parseInt(req.query.page) : 1;
-    const reports = await Report.find({})
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+    const reports = await Report.find({});
     if (!reports) {
       res.status(404).json({
         message: 'No Reports Found',
@@ -36,8 +32,69 @@ Router.get('/all', async (req, res) => {
   }
 });
 
+// Get All Report from the logged in user
+Router.get('/myreports', userAuthenticate, async (req, res) => {
+  try {
+    const reports = await Report.find({});
+    let reportsArr = [];
+    reports.forEach((report) => {
+      if (report.author.id.toString() === req.user._id.toString()) {
+        reportsArr.push(report);
+      }
+    });
+    if (reportsArr.length === 0) {
+      res.status(404).json({
+        message: 'No Reports Found',
+      });
+    } else {
+      res.status(200).json({
+        message: 'Reports Found',
+        reports: reportsArr,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error Fetching Reports',
+      error: error,
+    });
+  }
+});
+
+// Get Reports from a specific user
+Router.get(
+  '/reports/:id',
+  userAuthenticate,
+  checkRole(['admin']),
+  async (req, res) => {
+    try {
+      const reports = await Report.find({});
+      let reportsArr = [];
+      reports.forEach((report) => {
+        if (report.author.id.toString() === req.params.id.toString()) {
+          reportsArr.push(report);
+        }
+      });
+      if (reportsArr.length === 0) {
+        res.status(404).json({
+          message: 'No Reports Found',
+        });
+      } else {
+        res.status(200).json({
+          message: 'Reports Found',
+          reports: reportsArr,
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error Fetching Reports',
+        error: error,
+      });
+    }
+  }
+);
+
 // Create a new report
-Router.post('/new', (req, res) => {
+Router.post('/new', userAuthenticate, (req, res) => {
   if (!req.body) {
     res.status(400).send('Request body is missing');
   } else {
@@ -55,6 +112,12 @@ Router.post('/new', (req, res) => {
         attendedPrograms: req.body.attendedPrograms,
         socialWork: req.body.socialWork,
         letter: req.body.letter,
+        author: {
+          id: req.user._id,
+          email: req.user.email,
+          unit: req.user.unit,
+          role: req.user.role,
+        },
       });
       newReport.save((err, report) => {
         if (err) {
@@ -72,7 +135,7 @@ Router.post('/new', (req, res) => {
 });
 
 // Get a report by ID
-Router.get('/:id', async (req, res) => {
+Router.get('/:id', userAuthenticate, async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
     if (!report) {
@@ -94,7 +157,7 @@ Router.get('/:id', async (req, res) => {
 });
 
 // Update a report by ID
-Router.put('/:id', async (req, res) => {
+Router.put('/:id', userAuthenticate, async (req, res) => {
   try {
     const report = await Report.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -119,7 +182,7 @@ Router.put('/:id', async (req, res) => {
 });
 
 // Delete a report by ID
-Router.delete('/:id', async (req, res) => {
+Router.delete('/:id', userAuthenticate, async (req, res) => {
   try {
     const report = await Report.findByIdAndDelete(req.params.id);
     if (!report) {
