@@ -5,6 +5,8 @@ const {
   userLogin,
   userAuthenticate,
   checkRole,
+  requestPasswordReset,
+  resetPassword,
 } = require('../utils/auth');
 
 const { getProfile, getAllUsers } = require('../controllers/auth');
@@ -53,5 +55,11 @@ Router.get(
 
 // Get All Users
 Router.get('/all', userAuthenticate, checkRole(['admin']), getAllUsers);
+
+// Password Reset Request
+Router.post('/password/reset-request', requestPasswordReset);
+
+// Password Reset
+Router.post('/password/reset', resetPassword);
 
 module.exports = Router;

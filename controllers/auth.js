@@ -1,5 +1,9 @@
 const User = require('../models/user');
-const { serializeUser } = require('../utils/auth');
+const {
+  serializeUser,
+  requestPasswordReset,
+  resetPassword,
+} = require('../utils/auth');
 
 exports.getProfile = async (req, res) => {
   await User.findById(req.user._id)
@@ -46,4 +50,24 @@ exports.getAllUsers = async (req, res) => {
       error: error,
     });
   }
+};
+
+exports.requestPasswordReset = async (req, res) => {
+  const link = await requestPasswordReset(req.body.email);
+  res.status(200).json({
+    message: 'Password reset link sent to your email',
+    link: link,
+  });
+};
+
+exports.resetPassword = async (req, res) => {
+  const resetPassword = await resetPassword(
+    req.body.userId,
+    req.body.token,
+    req.body.password
+  );
+  res.status(200).json({
+    message: 'Password reset successfully',
+    success: true,
+  });
 };

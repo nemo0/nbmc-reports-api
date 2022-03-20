@@ -2,8 +2,12 @@ require('dotenv').config();
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const User = require('../models/user');
+const Token = require('../models/token');
+
+const { sendEmail } = require('../utils/email');
 
 // User Registration
 const userRegistration = async (userDets, role, res) => {
@@ -169,10 +173,60 @@ const serializeUser = (user) => {
   };
 };
 
+const requestPasswordReset = async (email) => {
+  const user = await User.findOne({ email: email });
+  if (!user) throw new Error('No user with the email  provided');
+  let token = await Token.findOne({ user: user._id });
+  if (token) await token.remove();
+  let resetToken = crypto.randomBytes(32).toString('hex');
+  const hash = await bcrypt.hash(resetToken, 10);
+
+  await new Token({
+    userId: user._id,
+    token: hash,
+  }).save();
+
+  const link = `${process.env.CLIENT_URL}/reset?token=${resetToken}&id=${user._id}`;
+  await sendEmail(
+    user.email,
+    'Password Reset Request',
+    { name: user.name, link: link },
+    '../template/requestPasswordReset.handlebars'
+  );
+
+  return link;
+};
+
+const resetPassword = async (userId, token, password) => {
+  let passwordToken = await Token.findOne({ userId });
+  if (!passwordToken) {
+    throw new Error('Invalid or Expired Token.');
+  }
+  const isValid = await bcrypt.compare(token, passwordToken.token);
+  if (!isValid) throw new Error('Invalid or Expired Token.');
+  const hash = await bcrypt.hash(password, 10);
+  await User.updateOne(
+    { _id: userId },
+    { $set: { password: hash } },
+    { new: true }
+  );
+  const user = await User.findById({ _id: userId });
+  sendEmail(
+    user.email,
+    'Password Reset Successfully',
+    { name: user.name },
+    '../template/resetPassword.handlebars'
+  );
+  await passwordToken.remove();
+  return true;
+};
+
 module.exports = {
   userRegistration,
   userLogin,
   userAuthenticate,
   serializeUser,
   checkRole,
+  requestPasswordReset,
+  resetPassword,
 };

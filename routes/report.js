@@ -1,6 +1,5 @@
 const express = require('express');
 const Router = express.Router();
-const Report = require('../models/report');
 const { userAuthenticate, checkRole } = require('../utils/auth');
 const {
   getAllReports,
