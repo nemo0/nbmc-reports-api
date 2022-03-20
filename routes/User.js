@@ -10,14 +10,24 @@ const {
 } = require('../utils/auth');
 
 const { getProfile, getAllUsers } = require('../controllers/auth');
+const { validateUser } = require('../utils/validation');
+const { validateMiddleware } = require('../middlewares/validation');
 
-Router.post('/register/user', async (req, res) => {
-  await userRegistration(req.body, 'user', res);
-});
+Router.post(
+  '/register/user',
+  [validateMiddleware(validateUser)],
+  async (req, res) => {
+    await userRegistration(req.body, 'user', res);
+  }
+);
 
-Router.post('/register/admin', async (req, res) => {
-  await userRegistration(req.body, 'admin', res);
-});
+Router.post(
+  '/register/admin',
+  [validateMiddleware(validateUser)],
+  async (req, res) => {
+    await userRegistration(req.body, 'admin', res);
+  }
+);
 
 Router.post('/login/user', async (req, res) => {
   await userLogin(req.body, 'user', res);

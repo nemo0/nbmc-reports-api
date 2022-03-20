@@ -11,6 +11,9 @@ const {
   deleteReport,
 } = require('../controllers/report');
 
+const { validateReport } = require('../utils/validation');
+const { validateMiddleware } = require('../middlewares/validation');
+
 // Test Route
 Router.get('/test', (req, res) => {
   res.status(200).json({
@@ -19,7 +22,7 @@ Router.get('/test', (req, res) => {
 });
 
 // Get All Reports
-Router.get('/all', userAuthenticate, checkRole(['admin']), getAllReports);
+Router.get('/all', [userAuthenticate, checkRole(['admin'])], getAllReports);
 
 // Get All Report from the logged in user
 Router.get('/myreports', userAuthenticate, getReportsByLoggedInUser);
@@ -27,19 +30,26 @@ Router.get('/myreports', userAuthenticate, getReportsByLoggedInUser);
 // Get Reports from a specific user
 Router.get(
   '/reports/:id',
-  userAuthenticate,
-  checkRole(['admin']),
+  [userAuthenticate, checkRole(['admin'])],
   getReportsBySpecificUser
 );
 
 // Create a new report
-Router.post('/new', userAuthenticate, createNewReport);
+Router.post(
+  '/new',
+  [userAuthenticate, validateMiddleware(validateReport)],
+  createNewReport
+);
 
 // Get a report by ID
 Router.get('/:id', userAuthenticate, getReportById);
 
 // Update a report by ID
-Router.put('/:id', userAuthenticate, updateReport);
+Router.put(
+  '/:id',
+  [userAuthenticate, [userAuthenticate, validateMiddleware(validateReport)]],
+  updateReport
+);
 
 // Delete a report by ID
 Router.delete('/:id', userAuthenticate, deleteReport);

@@ -40,7 +40,7 @@ const Report = new Schema({
   },
   dateWise: [sc_date],
   average: {
-    type: String,
+    type: Number,
   },
   discussedTopics: {
     type: String,
