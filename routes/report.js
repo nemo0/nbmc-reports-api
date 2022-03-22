@@ -45,7 +45,7 @@ Router.post(
 Router.get('/:id', userAuthenticate, getReportById);
 
 // Update a report by ID
-Router.put(
+Router.patch(
   '/:id',
   [userAuthenticate, [userAuthenticate, validateMiddleware(validateReport)]],
   updateReport
