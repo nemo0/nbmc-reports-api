@@ -20,8 +20,8 @@ requireAuth(passport);
 
 setupMorgan(app);
 
-app.use('/api/v1/', require('./routes/report'));
-app.use('/api/v1/auth', require('./routes/user.js'));
+app.use('/api/v1/', require('./routes/Report'));
+app.use('/api/v1/auth', require('./routes/User.js'));
 
 app.get('/', function (req, res) {
   res.json({
